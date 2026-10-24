@@ -2,3 +2,7 @@
 __pycache__/
 build/
 coop-bots-out/
+# Root-level build artifacts from games/outlast-2/src/build.bat
+/dinput8proxy.obj
+/dinput8proxy.lib
+/dinput8proxy.exp
