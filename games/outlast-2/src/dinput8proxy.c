@@ -1,4 +1,5 @@
 #include "win_min.h"
+#include "coop_protocol.h"
 
 #pragma function(memcpy, memset)
 void* memcpy(void* dest, const void* src, size_t count)
@@ -119,6 +120,21 @@ static int g_coopPhase = 0; // 0 = solo testing, 1 = host, 2 = client
 static void* g_coopHeroObject = NULL; // local hero (OLHero) object, host-side
 static void* g_coopRemotePuppets[8] = { NULL };
 static int g_coopPuppetCount = 0;
+
+// Phase 3: local player state buffer, filled from the local pawn once identified
+// via captured ProcessEvent context; broadcast at COOP_TICK_RATE to the relay.
+static CoopPlayerState g_localPlayerState = {0};
+static unsigned int g_localStateSeq = 0;
+
+static CoopPlayerState* NextLocalState(void)
+{
+    g_localStateSeq++;
+    g_localPlayerState.hdr.magic = COOP_MAGIC;
+    g_localPlayerState.hdr.version = COOP_PROTO_VERSION;
+    g_localPlayerState.hdr.type = COOP_PKT_PLAYER_STATE;
+    g_localPlayerState.hdr.seq = g_localStateSeq;
+    return &g_localPlayerState;
+}
 
 static void LogActorContext(const char* tag, void* pActor)
 {
