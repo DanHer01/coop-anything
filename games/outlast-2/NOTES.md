@@ -149,4 +149,10 @@ Target: Campaign co-op for Outlast 2
 ### 6.4 Next steps
 - Re-run isolated test client with a longer window (e.g. 600 s) to try to catch first dispatch.
 - If still no dispatch: hook earlier in boot (e.g. `UEngine` tick) or verify entry path.
+- Once first call is captured, proceed to `GObjects`/`GNames` world-actor dump and puppet spawning (`games/outlast-2/src/dinput8proxy.c` hook now logs object/function pointers + 32-byte headers on first call; rebuilt and redeployed 2026-10-24).
+
+### 6.5 Capture enhancements (2026-10-24)
+- Added `log_hex_bytes()` helper and extended first-call logging to dump object + function header bytes.
+- Rebuilt via `games/outlast-2/src/build.bat`; redeployed to `local/installs/instance1\Binaries\Win64\dinput8.dll`.
+- Re-validated in live run: hook install still clean (prologue OK, jump OK, no crash).
 
