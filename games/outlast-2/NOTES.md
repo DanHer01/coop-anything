@@ -171,3 +171,55 @@ Target: Campaign co-op for Outlast 2
 - Process liveness: alive, CPU-active (33-34s CPU/60s), ~96 threads, ~1.7GB working set —
   engine running/loading, not crashed.
 
+---
+
+## 7. Sync Design (Phase 3 — capture-gated wiring)
+
+Written 2026-10-24 while first ProcessEvent capture is pending. Design is based on the
+OpenOL (Outlast 1) host-authoritative puppet model. Packet definitions live in
+`games/outlast-2/src/coop_protocol.h` (compiled into the proxy DLL).
+
+### 7.1 Authority flow
+
+- **Host authoritative:** enemy AI (`OLBot` / `OLEnemyPawn`), door states, item/battery
+  pickups, checkpoints & streaming level barriers, story/Kismet events, damage and
+  struggle/execution sequences. Host relays each client's state to the others.
+- **Client autonomous:** local pawn physics, camera, stamina; broadcasts own state at
+  20–30 Hz (`COOP_TICK_RATE = 25 Hz`) over unreliable UDP; receives relayed state for
+  remote puppets and host-authored world state.
+- **Reliable channels:** `WORLD_EVENT`, `LEVEL_BARRIER`, `ENEMY_STATE`, `JOIN` are
+  retransmitted until acknowledged; player state and heartbeat are fire-and-forget with
+  sequence numbers for interpolation.
+
+### 7.2 Puppet state schema (`CoopPlayerState`)
+
+| Field | Type | Notes |
+|---|---|---|
+| `slot` | u8 | remote player id 0–7, host-assigned on JOIN |
+| `flags` | u8 | crouch / prone / slide / swim / dive / sprint / dead / camcorder raised |
+| `misc` | u8 | night vision, mic extended, bleeding, bandage, interacting |
+| `stamina` | u8 | 0–100 |
+| `pos[3]` | float | world position (UE3 coords) |
+| `vel[3]` | float | velocity for interpolation / prediction |
+| `yaw`,`pitch` | float | rotation + head/camera pitch |
+| `seq` | u32 | monotonic per sender, for ordering and interpolation |
+
+Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap rotation.
+
+### 7.3 Relay packet design
+
+- Header: `magic ('OL' 0x4F4C)` + `version` + `type` + `seq` (all little-endian, packed).
+- Types: `0x01 PLAYER_STATE` (unreliable, 25 Hz), `0x02 WORLD_EVENT` (reliable),
+  `0x03 LEVEL_BARRIER` (host → clients, ack; level streaming gate), `0x04 ENEMY_STATE`
+  (reliable, host → clients), `0x05 JOIN` (late-join room snapshot), `0x06 HEARTBEAT`
+  (1 Hz).
+- Transport: single UDP socket to relay (OpenOL-Relay pattern) or direct Steam
+  P2P/Spacewar relay (per `playbook/networking-steam-spacewar.md`).
+
+### 7.4 Gating items (pending capture)
+
+- Resolve `GObject`/`GNames` accessors from first captured `ProcessEvent` context.
+- Wire `DumpWorldActorsNow()` to the real actor array; resolve engine spawn path for
+  `RequestRemotePuppetSpawn()`.
+- Bind `NextLocalState()` fill to the local `OLHero` pawn state.
+
