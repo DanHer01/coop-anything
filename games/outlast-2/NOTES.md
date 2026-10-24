@@ -156,3 +156,11 @@ Target: Campaign co-op for Outlast 2
 - Rebuilt via `games/outlast-2/src/build.bat`; redeployed to `local/installs/instance1\Binaries\Win64\dinput8.dll`.
 - Re-validated in live run: hook install still clean (prologue OK, jump OK, no crash).
 
+### 6.6 Phase 3 prep (2026-10-24)
+- Added world actor dump / puppet spawn scaffolding to `games/outlast-2/src/dinput8proxy.c`:
+  - Co-op phase state (`g_coopPhase`: solo/host/client), hero object, 8 remote puppet slots.
+  - `LogActorContext()` helper (object pointer + 32-byte header dump).
+  - `DumpWorldActorsNow()` and `RequestRemotePuppetSpawn()` stubs; global UObject array
+    accessor (GObject/GNames) and engine spawn path still need runtime resolution.
+- Rebuilt and re-validated in isolated install; still no ProcessEvent capture.
+
