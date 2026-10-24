@@ -10,7 +10,9 @@
 
 ## Where things stand
 
-Outlast 2 does not currently have a playable co-op mod; it is documented here as an active gap. While the game shipped strictly as single-player, its binary retains Unreal Engine 3 replication structures and native network driver classes (`UNetDriver`, `TcpNetDriver`). The roadmap follows the host-authoritative puppet architecture proven by the first game's community mod (*OpenOL*).
+Outlast 2 does not currently have a playable co-op mod; it is documented here as an active gap. While the game shipped strictly as single-player, its binary retains Unreal Engine 3 replication structures and native network driver classes (`UNetDriver`, `TcpNetDriver`).
+
+A proxy hook layer now exists in `games/outlast-2/src/` (`dinput8.dll` + manual trampoline hook on `UObject::ProcessEvent` at RVA `0x4DA80`), deployed to the isolated test install (`local/installs/instance1`). Hook installation and target validation are **verified working** (see QA); live interception of the first engine event is the current open question.
 
 ## Existing work
 
@@ -32,10 +34,13 @@ Outlast 2 does not currently have a playable co-op mod; it is documented here as
 
 ## What we changed
 
-No code changes have been made to the game client yet (Phase 0 Triage & Phase 1 Research complete).
+The proxy DLL (`dinput8.dll`) and hook (`UObject::ProcessEvent` at RVA `0x4DA80`) are built and deployed to the isolated test install (`local/installs/instance1`) via `games/outlast-2/src/build.bat`. No changes have been made to the owner's game install or saves.
 
 ## QA
 
+- Proxy hook install verified in live isolated runs (3/3 clean: prologue OK, jump applied, no crash).
+- PE static validation: RVA `0x4DA80` confirmed as genuine function start (`.pdata` RUNTIME_FUNCTION, size 812).
+- Live `ProcessEvent` interception: not yet observed (see `games/outlast-2/NOTES.md` §6).
 - No automated co-op test suite currently exists for Outlast 2.
 - Directory and sync testing tools verified via `tools/build_directory.py`.
 
@@ -52,5 +57,6 @@ Not yet playable. Official co-op gameplay in the Outlast universe is available i
 
 1. Build a proxy DLL (hooking `xinput1_3.dll` or `d3dcompiler_46.dll`) that loads MinHook into `Outlast2.exe`.
 2. Hook `UObject::ProcessEvent` to log events and intercept `OLPlayerController` / `OLHero` ticks.
+   - Status: hook installed and target validated; first live interception still pending (NOTES §6).
 3. Locate `GObjects` and `GNames` to dynamically query world actors and pawn instances.
 4. Implement a lightweight local UDP transport and spawn a puppet `OLHero` mesh for player 2.

@@ -117,3 +117,36 @@ Target: Campaign co-op for Outlast 2
 - Add entry for Outlast 1 (`ShyKiss/OpenOL`) as an existing reference mod for the engine family.
 - Regenerate `DIRECTORY.md` using `python tools/build_directory.py`.
 - Create `games/outlast-2/README.md` following `templates/game.md`.
+
+---
+
+## 6. Runtime Hook Validation (2026-10-24, isolated install)
+
+### 6.1 Test setup
+- Isolated install under test: `local/installs/instance1` (Outlast 2 build 2601375, exe SHA-256 `F7993204...54107`).
+- Proxy DLL source: `games/outlast-2/src/dinput8proxy.c` (+ `win_min.h`, `dinput8proxy.def`, vendored `minhook/`), built by `games/outlast-2/src/build.bat` into the isolated install's `Binaries\Win64\dinput8.dll`.
+- Live launchers: `local/run_test_client.ps1` (25s), `local/run_long_test.ps1` (was 90s -> 180s -> 300s -> 420s), `local/diag_test.ps1` (60s + process liveness check).
+
+### 6.2 Findings (2026-10-24)
+
+- **Hook install: 3/3 live runs OK.** Log sequence on every run:
+  - `[INIT] Outlast 2 Co-op Proxy DLL (dinput8.dll) attached.`
+  - `[HOOK] Target function address: 0x...4DA80`
+  - `[HOOK] Prologue bytes verified: 48 8B C4 48 89.`
+  - `[HOOK SUCCESS] ProcessEvent hooked with 14-byte 64-bit absolute jump!`
+- **Hook target validated statically** via `local/analyze_pdata.py` against the exe:
+  - `.pdata` RUNTIME_FUNCTION containing RVA `0x4DA80`: Begin=`0x4DA80`, End=`0x4DDAC`, Size=812 bytes.
+  - Prologue bytes at target: `48 8B C4 48 89 50 10 56 57 41 54 41 56 41 57 ...` (`mov rax,rsp; mov [rax+10h],rdx; push r15...`).
+  - Stolen-region boundary lands cleanly after `push r15` (byte +15), so 15-byte trampoline copy + `jmp [rip+0]` back to +15 is instruction-aligned.
+- **`ProcessEvent` interception: 0 calls observed** across live windows of 90 s, 180 s, 300 s and 420 s after hook install. The first-call log line (`[HOOK] *** FIRST ProcessEvent call intercepted successfully! ***`) never fired.
+- **Process liveness (60 s diag run):** process RUNNING, 96 threads, ~30 s CPU / 60 s, working set ~1.7 GB -> engine was alive and busy (loading/streaming), not crashed, not hung at a hard exit.
+
+### 6.3 Interpretation / open questions
+- `UObject::ProcessEvent` dispatch may simply not occur until gameplay phase (post menu / post intro), or only for UFUNCTION-bound calls.
+- Engine busy-ness (CPU + 1.7 GB working set) is consistent with cooked-package streaming, not with a dead hook.
+- Next step: extend live window past menu/intro, and/or instrument with a longer baseline before concluding the hook is wrong.
+
+### 6.4 Next steps
+- Re-run isolated test client with a longer window (e.g. 600 s) to try to catch first dispatch.
+- If still no dispatch: hook earlier in boot (e.g. `UEngine` tick) or verify entry path.
+
