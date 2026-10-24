@@ -79,6 +79,27 @@ static void log_hex(const char* prefix, uintptr_t val)
     log_write(buf);
 }
 
+static void log_hex_bytes(const char* prefix, const void* p, int len)
+{
+    char buf[1024];
+    size_t i = 0;
+    while (prefix && prefix[i] && i < 64) {
+        buf[i] = prefix[i];
+        i++;
+    }
+    buf[i++] = '0'; buf[i++] = 'x';
+    const unsigned char* b = (const unsigned char*)p;
+    for (int j = 0; j < len; j++) {
+        unsigned int byte = b[j];
+        buf[i++] = (char)(byte < 10) ? ('0' + byte) : ('A' + (byte - 10));
+        if (j < len - 1) {
+            buf[i++] = ' ';
+        }
+    }
+    buf[i] = '\0';
+    log_write(buf);
+}
+
 // Global hook variables for ProcessEvent
 // Target RVA: 0x4DA80
 typedef void (__fastcall *fn_ProcessEvent)(void* pObject, void* pFunction, void* pParms, void* pResult);
@@ -95,6 +116,8 @@ static void __fastcall Hook_ProcessEvent(void* pObject, void* pFunction, void* p
         log_write("[HOOK] *** FIRST ProcessEvent call intercepted successfully! ***");
         log_hex("[HOOK] Target Object: ", (uintptr_t)pObject);
         log_hex("[HOOK] Target Function: ", (uintptr_t)pFunction);
+        log_hex_bytes("[HOOK] Object header (first 32 bytes): ", pObject, 32);
+        log_hex_bytes("[HOOK] Function header (first 32 bytes): ", pFunction, 32);
     } else if (g_processEventCount == 100 || g_processEventCount == 1000 || (g_processEventCount % 10000) == 0) {
         log_hex("[HOOK] ProcessEvent tick count: ", g_processEventCount);
     }
