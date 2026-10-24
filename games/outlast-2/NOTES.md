@@ -164,3 +164,10 @@ Target: Campaign co-op for Outlast 2
     accessor (GObject/GNames) and engine spawn path still need runtime resolution.
 - Rebuilt and re-validated in isolated install; still no ProcessEvent capture.
 
+### 6.7 Capture attempts log (2026-10-24)
+- Live runs with progressively extended windows (25s / 60s / 90s / 180s / 300s / 420s) and two
+  build revisions (context-capture build, phase-3 build): hook install clean every time,
+  first-call capture never fired.
+- Process liveness: alive, CPU-active (33-34s CPU/60s), ~96 threads, ~1.7GB working set —
+  engine running/loading, not crashed.
+
