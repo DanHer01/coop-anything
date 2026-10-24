@@ -109,6 +109,45 @@ static volatile unsigned long g_processEventCount = 0;
 // Minimal 64-bit trampoline buffer (allocated in 2GB range of target)
 static BYTE* g_trampoline = NULL;
 
+// ================= Phase 3 prep: world actor dump & puppet spawn scaffolding =================
+// NOTE: The global UObject array accessor (GObject/GNames) for Outlast 2's UE3 build is
+// not yet resolved at runtime (see NOTES.md §6). Phase 3 scaffolding consumes actor
+// pointers surfaced through the ProcessEvent hook and is wired to the first captured
+// ProcessEvent context. Do not hardcode global addresses before runtime verification.
+
+static int g_coopPhase = 0; // 0 = solo testing, 1 = host, 2 = client
+static void* g_coopHeroObject = NULL; // local hero (OLHero) object, host-side
+static void* g_coopRemotePuppets[8] = { NULL };
+static int g_coopPuppetCount = 0;
+
+static void LogActorContext(const char* tag, void* pActor)
+{
+    if (!pActor) return;
+    log_hex(tag, (uintptr_t)pActor);
+    log_hex_bytes(tag, pActor, 32);
+}
+
+// Phase 3: world actor dump. Entry requires the resolved UObject array accessor:
+//   - UObject** GObject array + count (name/address TBD - verify at runtime)
+//   - For UE3-style builds the array may also be reachable via UClass children/outer.
+// void DumpWorldActors(void* pArray, int nCount) { ... }
+static void DumpWorldActorsNow(void)
+{
+    log_write("[PHASE3] DumpWorldActors invoked (scaffolding only - array accessor unresolved).");
+}
+
+// Phase 3: remote puppet spawn. Host spawns a puppet OLHero for a remote slot;
+// client feeds input. Class spawning goes through the engine (World->SpawnActor),
+// address to be resolved once captured.
+static void RequestRemotePuppetSpawn(int slot, void* pSpawnClass)
+{
+    if (g_coopPhase < 1) return; // solo phase only
+    if (slot < 0 || slot >= 8) return;
+    log_write("[PHASE3] Remote puppet spawn requested (host authoritative).");
+    g_coopRemotePuppets[slot] = pSpawnClass; // placeholder until real spawn path is wired
+    g_coopPuppetCount++;
+}
+
 static void __fastcall Hook_ProcessEvent(void* pObject, void* pFunction, void* pParms, void* pResult)
 {
     g_processEventCount++;
