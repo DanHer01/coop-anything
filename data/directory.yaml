@@ -7614,10 +7614,11 @@
   open_source: unknown
   last_activity: unknown
   qa: none
-  notes: No working co-op or multiplayer mod found for Outlast 2. Sibling title Outlast 1 has the OpenOL client mod and relay server. The Outlast Trials provides official multiplayer.
+  notes: No working co-op or multiplayer mod found for Outlast 2. Sibling title Outlast 1 has the OpenOL client mod and relay server. The Outlast Trials provides official multiplayer. Co-op-from-zero work in progress in this repo (games/outlast-2) - proxy dinput8.dll hook installs in an isolated install, and protocol/UDP transport/relay session/host relay/puppet interpolation are implemented with 24 offline check groups passing (tests/run.bat); engine wiring is blocked on the first live ProcessEvent capture, so no two-client game test has run yet.
   sources:
   - https://www.nexusmods.com/outlast2
-  checked: '2026-10-21'
+  - https://github.com/cranebeaker/coop-anything/tree/main/games/outlast-2
+  checked: '2026-10-24'
   searched:
   - 'WebSearch: Outlast 2 co-op multiplayer mod on github.com, nexusmods.com, moddb.com, steamcommunity.com, reddit.com'
   - 'Nexus Mods Outlast 2 catalog: checked all mods (O2menu trainer found; no co-op mods)'
