@@ -6,3 +6,10 @@ coop-bots-out/
 /dinput8proxy.obj
 /dinput8proxy.lib
 /dinput8proxy.exp
+# games/outlast-2/tests build outputs
+/games/outlast-2/tests/*.obj
+/games/outlast-2/tests/*.exe
+/games/outlast-2/tests/*.pdb
+/protocol_test.obj
+/protocol_test.exe
+/protocol_test.pdb
