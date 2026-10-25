@@ -10,10 +10,12 @@ coop-bots-out/
 /coop_net.obj
 /coop_session.obj
 /coop_relay.obj
+/coop_interp.obj
 /protocol_test.obj
 /net_loopback_test.obj
 /session_test.obj
 /relay_test.obj
+/interp_test.obj
 # games/outlast-2/tests build outputs
 /games/outlast-2/tests/*.obj
 /games/outlast-2/tests/*.exe

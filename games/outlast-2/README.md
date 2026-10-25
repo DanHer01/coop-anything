@@ -36,7 +36,7 @@ A proxy hook layer now exists in `games/outlast-2/src/` (`dinput8.dll` + manual 
 
 The proxy DLL (`dinput8.dll`) and hook (`UObject::ProcessEvent` at RVA `0x4DA80`) are built and deployed to the isolated test install (`local/installs/instance1`) via `games/outlast-2/src/build.bat`. No changes have been made to the owner's game install or saves.
 
-The networking stack is also in place in `games/outlast-2/src/`, compiled into the DLL but not yet driven by the game: sync protocol (`coop_protocol.h`), UDP transport (`coop_net.c`), relay session table (`coop_session.c`) and the host/client relay pump (`coop_relay.c`). Host-authoritative: clients send their pawn state, the host relays it, owns slot assignment and answers late joins with a snapshot.
+The networking stack is also in place in `games/outlast-2/src/`, compiled into the DLL but not yet driven by the game: sync protocol (`coop_protocol.h`), UDP transport (`coop_net.c`), relay session table (`coop_session.c`), the host/client relay pump (`coop_relay.c`) and remote-puppet interpolation (`coop_interp.c`). Host-authoritative: clients send their pawn state, the host relays it, owns slot assignment and answers late joins with a snapshot; remote puppets are played back through a 100 ms jitter buffer.
 
 ## QA
 
@@ -47,7 +47,8 @@ The networking stack is also in place in `games/outlast-2/src/`, compiled into t
 - UDP loopback test: same command — self round-trip, two-socket delivery, recv timeout — **PASS** (2026-10-24, 3 groups).
 - Relay session test: same command — join/find, capacity/slot reuse, touch/expire, relay fan-out, late-join snapshot — **PASS** (2026-10-24, 5 groups).
 - Relay end-to-end test: same command — real host + two clients over UDP loopback (join, state relay, late-join snapshot), host-owned slot assignment, unknown-sender rejection, malformed-packet rejection, silent-player expiry — **PASS** (2026-10-24, 5 groups). 18 check groups total.
-- No automated co-op test suite currently exists for Outlast 2.
+- Interpolation test: same command — playback delay/lerp, stale+reordered packet rejection, loss gaps, extrapolation cap, teleport snapping, shortest-arc angles, scripted lossy/reordered fake network — **PASS** (2026-10-24, 6 groups). 24 check groups total.
+- These are offline/loopback tests of the sync stack; no automated test runs two game clients yet.
 - Directory and sync testing tools verified via `tools/build_directory.py`.
 
 ## How to play

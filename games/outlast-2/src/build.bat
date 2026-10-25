@@ -15,6 +15,7 @@ cl /nologo /O2 /LD /GS- /W3 ^
    "%SRC_DIR%coop_net.c" ^
    "%SRC_DIR%coop_session.c" ^
    "%SRC_DIR%coop_relay.c" ^
+   "%SRC_DIR%coop_interp.c" ^
    "%SRC_DIR%kernel32.lib" ^
    "%SRC_DIR%ws2_32.lib" ^
    /link /DEF:"%SRC_DIR%dinput8proxy.def" ^

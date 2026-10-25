@@ -292,3 +292,31 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
   applied, process alive (~31 s CPU / 95 threads over the run), no crash. First
   `ProcessEvent` capture is still the open gate (see §6).
 
+### 7.9 Puppet interpolation + fake-network tests (2026-10-24)
+
+- `games/outlast-2/src/coop_interp.h/.c`: remote-puppet playback, no game code.
+  - per-slot jitter buffer of 8 snapshots, sorted by arrival time; playback runs
+    `COOP_INTERP_DELAY_MS` (100 ms) behind the newest arrival so one late packet does
+    not stutter the puppet;
+  - position/velocity lerped between the two bracketing snapshots, yaw/pitch along the
+    shortest arc (`wrap180`), discrete flags/stamina taken from the older snapshot so
+    they do not flicker mid-blend;
+  - before the oldest snapshot it holds the oldest; after the newest it extrapolates on
+    the last velocity for at most `COOP_INTERP_MAX_EXTRAP_MS` (150 ms) and then holds;
+  - a step larger than `COOP_INTERP_TELEPORT_DIST` (800 UE3 units ≈ 8 m) snaps to the
+    newer snapshot (streaming load, scripted move) instead of sliding through geometry;
+  - stale/duplicate/out-of-order seq are rejected, so playback never rewinds.
+- `games/outlast-2/tests/interp_test.c`: 6 groups — lerp + playback delay, stale/reorder
+  rejection, loss gaps + extrapolation cap, teleport snapping, shortest-arc angles, and a
+  scripted lossy/reordered fake network (25 Hz sender, every 3rd packet dropped, pair
+  swaps, duplicates, 0-10 ms jitter) asserting no NaN, no rewind, bounded per-frame step
+  and that the puppet tracks the sender to the end of the run.
+- Result: **PASS — 6 check groups** (2026-10-24). All suites: protocol 5 + UDP loopback 3
+  + session 5 + relay 5 + interp 6 = **24 groups** via `games/outlast-2/tests/run.bat`.
+- Test-data bug found on the first run: the fake network timestamped packets by their
+  index in the *surviving* array instead of their 25 Hz send time, which made the
+  simulated sender appear to move at 1.5x speed and tripped the per-frame step bound.
+  Recv times now come from the tick's send time.
+- `coop_interp.c` defines `_fltused` (float use in a `/NODEFAULTLIB` DLL).
+- Proxy DLL build now compiles `coop_interp.c` as well (inert until wired).
+
