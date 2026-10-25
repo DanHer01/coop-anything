@@ -319,4 +319,7 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
   Recv times now come from the tick's send time.
 - `coop_interp.c` defines `_fltused` (float use in a `/NODEFAULTLIB` DLL).
 - Proxy DLL build now compiles `coop_interp.c` as well (inert until wired).
+- Live validation (2026-10-24): the rebuilt DLL with transport + session + relay +
+  interpolation linked in installs cleanly — prologue verified, jump applied, process
+  alive (~33 s CPU / 95 threads over the run), no crash.
 
