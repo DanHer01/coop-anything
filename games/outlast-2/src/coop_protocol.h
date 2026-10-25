@@ -91,4 +91,36 @@ typedef struct CoopEnemyState {
 
 #pragma pack(pop)
 
+// ================= Packet validation helpers =================
+
+// Expected wire size for a packet type, or 0 when the type is unknown.
+static __inline unsigned int coop_packet_size(unsigned char type)
+{
+    switch (type) {
+    case COOP_PKT_PLAYER_STATE:  return (unsigned int)sizeof(CoopPlayerState);
+    case COOP_PKT_WORLD_EVENT:   return (unsigned int)sizeof(CoopWorldEvent);
+    case COOP_PKT_LEVEL_BARRIER: return (unsigned int)sizeof(CoopLevelBarrier);
+    case COOP_PKT_ENEMY_STATE:   return (unsigned int)sizeof(CoopEnemyState);
+    case COOP_PKT_JOIN:
+    case COOP_PKT_HEARTBEAT:     return (unsigned int)sizeof(CoopPacketHeader);
+    default:                     return 0;
+    }
+}
+
+// Returns 1 when buf holds a complete, well-formed packet: at least a header,
+// matching magic and version, a known type, and an exact length for that type.
+static __inline int coop_packet_validate(const void* buf, int len)
+{
+    const CoopPacketHeader* hdr = (const CoopPacketHeader*)buf;
+    unsigned int expected;
+    if (!buf || len < (int)sizeof(CoopPacketHeader))
+        return 0;
+    if (hdr->magic != COOP_MAGIC || hdr->version != COOP_PROTO_VERSION)
+        return 0;
+    expected = coop_packet_size(hdr->type);
+    if (expected == 0)
+        return 0;
+    return (unsigned int)len == expected;
+}
+
 #endif // COOP_PROTOCOL_H

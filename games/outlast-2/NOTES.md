@@ -263,3 +263,28 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
   and UDP loopback (3) groups: `games/outlast-2/tests/run.bat`.
 - Proxy DLL build now compiles `coop_session.c` as well (inert until wired).
 
+### 7.8 Relay pump + end-to-end UDP tests (2026-10-24)
+
+- `games/outlast-2/src/coop_relay.h/.c`: ties `coop_net` to `coop_session`.
+  - host: `pump(now_ms)` receives up to 32 packets per call, validates framing, tracks
+    players, relays state/events to the others, answers `JOIN` with a late-join snapshot,
+    and expires players silent for `COOP_RELAY_TIMEOUT_MS` (5 s).
+  - client: `join`, `send_state`, `send_event`, `pump`; every accepted packet goes to a
+    sink callback (`CoopRelaySink`, gets the raw packet, source address and slot).
+  - authority detail: the host rewrites a `PLAYER_STATE` sender's `slot` byte to the
+    host-assigned slot, so a client cannot impersonate another player.
+  - stats counters (`rx_packets`, `rx_invalid`, `rx_unknown`, `rx_full`, `tx_relay`,
+    `tx_snapshot`, `expired`) for QA assertions and in-game logging.
+- `coop_protocol.h`: added `coop_packet_size()` and `coop_packet_validate()`
+  (exact-length, magic/version/type checks).
+- `games/outlast-2/tests/relay_test.c`: real UDP loopback, real host + two clients —
+  (1) join, state relay, late-join snapshot of earlier state, (2) host-controlled slot
+  assignment against a lying sender, (3) packets from an address that never joined are
+  ignored, (4) malformed packets (magic / version / type / length) rejected,
+  (5) silent player expiry at the timeout boundary.
+- Result: **PASS — 5 check groups** (2026-10-24). All suites: protocol 5 + UDP loopback 3
+  + session 5 + relay 5 = **18 groups** via `games/outlast-2/tests/run.bat`.
+- Freestanding build note: test frames over 4 KB pull in `__chkstk` from the CRT, so the
+  relay test keeps its `TestNet` fixture `static` (`.bss`) instead of on the stack.
+- Proxy DLL build now compiles `coop_relay.c` as well (inert until wired).
+

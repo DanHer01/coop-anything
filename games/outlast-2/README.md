@@ -36,6 +36,8 @@ A proxy hook layer now exists in `games/outlast-2/src/` (`dinput8.dll` + manual 
 
 The proxy DLL (`dinput8.dll`) and hook (`UObject::ProcessEvent` at RVA `0x4DA80`) are built and deployed to the isolated test install (`local/installs/instance1`) via `games/outlast-2/src/build.bat`. No changes have been made to the owner's game install or saves.
 
+The networking stack is also in place in `games/outlast-2/src/`, compiled into the DLL but not yet driven by the game: sync protocol (`coop_protocol.h`), UDP transport (`coop_net.c`), relay session table (`coop_session.c`) and the host/client relay pump (`coop_relay.c`). Host-authoritative: clients send their pawn state, the host relays it, owns slot assignment and answers late joins with a snapshot.
+
 ## QA
 
 - Proxy hook install verified in live isolated runs (3/3 clean: prologue OK, jump applied, no crash).
@@ -44,6 +46,7 @@ The proxy DLL (`dinput8.dll`) and hook (`UObject::ProcessEvent` at RVA `0x4DA80`
 - Offline protocol test: `games/outlast-2/tests/run.bat` — packed layout, round-trip, flag invariants — **PASS** (2026-10-24, 5 groups).
 - UDP loopback test: same command — self round-trip, two-socket delivery, recv timeout — **PASS** (2026-10-24, 3 groups).
 - Relay session test: same command — join/find, capacity/slot reuse, touch/expire, relay fan-out, late-join snapshot — **PASS** (2026-10-24, 5 groups).
+- Relay end-to-end test: same command — real host + two clients over UDP loopback (join, state relay, late-join snapshot), host-owned slot assignment, unknown-sender rejection, malformed-packet rejection, silent-player expiry — **PASS** (2026-10-24, 5 groups). 18 check groups total.
 - No automated co-op test suite currently exists for Outlast 2.
 - Directory and sync testing tools verified via `tools/build_directory.py`.
 
