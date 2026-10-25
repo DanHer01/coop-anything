@@ -83,6 +83,11 @@ __declspec(dllimport) void WINAPI GetLocalTime(LPSYSTEMTIME lpSystemTime);
 __declspec(dllimport) BOOL WINAPI VirtualProtect(LPVOID lpAddress, size_t dwSize, DWORD flNewProtect, DWORD* lpflOldProtect);
 __declspec(dllimport) LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, size_t dwSize, DWORD flAllocationType, DWORD flProtect);
 __declspec(dllimport) BOOL WINAPI VirtualFree(LPVOID lpAddress, size_t dwSize, DWORD dwFreeType);
+__declspec(dllimport) HANDLE WINAPI GetStdHandle(DWORD nStdHandle);
+__declspec(dllimport) void WINAPI ExitProcess(UINT uExitCode);
+
+#define STD_OUTPUT_HANDLE ((DWORD)-11)
+#define STD_ERROR_HANDLE  ((DWORD)-12)
 
 #ifdef __cplusplus
 }

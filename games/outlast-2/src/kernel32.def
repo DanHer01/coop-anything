@@ -4,11 +4,13 @@ EXPORTS
     CreateFileA
     CreateThread
     DisableThreadLibraryCalls
+    ExitProcess
     GetCurrentProcessId
     GetLocalTime
     GetModuleFileNameA
     GetModuleHandleA
     GetProcAddress
+    GetStdHandle
     GetSystemDirectoryA
     LoadLibraryA
     SetFilePointer
