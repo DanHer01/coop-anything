@@ -13,6 +13,7 @@ echo [2/2] Compiling dinput8.dll proxy...
 cl /nologo /O2 /LD /GS- /W3 ^
    "%SRC_DIR%dinput8proxy.c" ^
    "%SRC_DIR%coop_net.c" ^
+   "%SRC_DIR%coop_session.c" ^
    "%SRC_DIR%kernel32.lib" ^
    "%SRC_DIR%ws2_32.lib" ^
    /link /DEF:"%SRC_DIR%dinput8proxy.def" ^

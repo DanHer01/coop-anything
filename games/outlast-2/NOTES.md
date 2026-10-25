@@ -246,3 +246,20 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
   POSIX `struct timeval`; fixed in `coop_net_recv`.
 - Proxy DLL build now compiles `coop_net.c` and links `ws2_32.lib` (inert until wired).
 
+### 7.7 Relay session layer + unit tests (2026-10-24)
+
+- `games/outlast-2/src/coop_session.h/.c`: pure relay logic, no sockets and no game code.
+  - join/leave: `coop_session_add` (returns existing slot for a known address), `find`,
+    `remove`; slots `0..COOP_MAX_PLAYERS-1`, freed slots are reused.
+  - liveness: `touch` + `expire(now, timeout)` with wraparound-safe `now - last_seen`
+    arithmetic (time is injected, so tests are deterministic).
+  - fan-out: `relay_targets(sender_slot, ...)` never returns the sender's own address.
+  - late join: `update_state` stores each player's last `CoopPlayerState`;
+    `snapshot(exclude_slot, ...)` returns them for the joining client.
+- `games/outlast-2/tests/session_test.c`: 5 groups — join/find/duplicate join,
+  capacity + slot reuse, touch/expire, relay fan-out targets, late-join snapshot
+  (including the output cap and "joined but no state yet" case).
+- Result: **PASS — 5 check groups** (2026-10-24), alongside the existing protocol (5)
+  and UDP loopback (3) groups: `games/outlast-2/tests/run.bat`.
+- Proxy DLL build now compiles `coop_session.c` as well (inert until wired).
+
