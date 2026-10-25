@@ -287,4 +287,8 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
 - Freestanding build note: test frames over 4 KB pull in `__chkstk` from the CRT, so the
   relay test keeps its `TestNet` fixture `static` (`.bss`) instead of on the stack.
 - Proxy DLL build now compiles `coop_relay.c` as well (inert until wired).
+- Live validation (2026-10-24): the rebuilt DLL with the transport + session + relay
+  linked in installs cleanly in the isolated install — prologue verified, 14-byte jump
+  applied, process alive (~31 s CPU / 95 threads over the run), no crash. First
+  `ProcessEvent` capture is still the open gate (see §6).
 
