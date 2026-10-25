@@ -13,3 +13,5 @@ coop-bots-out/
 /protocol_test.obj
 /protocol_test.exe
 /protocol_test.pdb
+/coop_net.obj
+/net_loopback_test.obj

@@ -42,6 +42,7 @@ The proxy DLL (`dinput8.dll`) and hook (`UObject::ProcessEvent` at RVA `0x4DA80`
 - PE static validation: RVA `0x4DA80` confirmed as genuine function start (`.pdata` RUNTIME_FUNCTION, size 812).
 - Live `ProcessEvent` interception: not yet observed (see `games/outlast-2/NOTES.md` §6).
 - Offline protocol test: `games/outlast-2/tests/run.bat` — packed layout, round-trip, flag invariants — **PASS** (2026-10-24, 5 groups).
+- UDP loopback test: same command — self round-trip, two-socket delivery, recv timeout — **PASS** (2026-10-24, 3 groups).
 - No automated co-op test suite currently exists for Outlast 2.
 - Directory and sync testing tools verified via `tools/build_directory.py`.
 

@@ -232,3 +232,17 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
   packet type ids, protocol constants.
 - Result: **PASS — 5 check groups** (2026-10-24).
 
+### 7.6 UDP transport + loopback tests (2026-10-24)
+
+- `games/outlast-2/src/coop_net.h/.c`: freestanding UDP transport over ws2_32 imports
+  (no CRT/SDK headers), API: `coop_net_init/shutdown`, `coop_net_open` (bind, ephemeral
+  port support), `coop_net_send`, `coop_net_recv` (timeout), `coop_net_local_port`,
+  `coop_net_close`. `ws2_32.def` generates the import lib.
+- `games/outlast-2/tests/net_loopback_test.c`: proves packet flow without the game —
+  (1) self send/receive of a `CoopPlayerState`, (2) two-socket client→host delivery with
+  source-address check, (3) receive timeout behavior.
+- Result: **PASS — 3 check groups** (2026-10-24).
+- Gotcha found by a hang: Windows `SO_RCVTIMEO` takes a `DWORD` in milliseconds, not a
+  POSIX `struct timeval`; fixed in `coop_net_recv`.
+- Proxy DLL build now compiles `coop_net.c` and links `ws2_32.lib` (inert until wired).
+
