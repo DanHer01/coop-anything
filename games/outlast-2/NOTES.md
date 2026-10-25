@@ -223,3 +223,12 @@ Interpolation: hold 100–150 ms of buffered state, interpolate pos/vel, snap ro
   `RequestRemotePuppetSpawn()`.
 - Bind `NextLocalState()` fill to the local `OLHero` pawn state.
 
+### 7.5 Offline protocol tests (2026-10-24)
+
+- Command: `games/outlast-2/tests/run.bat` (freestanding build, `/NODEFAULTLIB`, same
+  environment as the proxy DLL; no CRT headers available in this VS install).
+- Asserts: packed wire sizes (`8/44/16/12/12` bytes), field offsets, big-endian-free
+  round-trip (player state + world event), single-bit flag/misc invariants, distinct
+  packet type ids, protocol constants.
+- Result: **PASS — 5 check groups** (2026-10-24).
+
